@@ -1,11 +1,20 @@
-import { DataSource } from 'typeorm';
+import { AppDataSource } from "../config/datasource.config.js";
 import type { StudentClassification, ClassificationEnum } from '../types/studentClassification.type.js';
 
+/**
+ * Filters for querying student classifications.
+ * 
+ * @interface StudentClassificationFilters
+ * @property {ClassificationEnum} [classification] - The classification type to filter by
+ * @property {boolean} [isFlagged] - Whether to filter by flagged status
+ * @property {string} [departmentName] - The department name to filter by
+ * @property {number} [limit] - Maximum number of results to return
+ * @property {string} [cursor] - Classification ID of the last item from the previous page for pagination
+ */
 export interface StudentClassificationFilters {
-  studentId?: string;
   classification?: ClassificationEnum;
   isFlagged?: boolean;
-  departmentId?: number;
+  departmentName?: string;
   limit?: number;
   cursor?: string; // classification_id of the last item from previous page
 }
@@ -17,13 +26,11 @@ export type PaginatedStudentClassifications = {
 }
 
 export class StudentClassificationRepository {
-  constructor(private dataSource: DataSource) {}
-
   async findAll(filters: StudentClassificationFilters = {}): Promise<PaginatedStudentClassifications> {
     const {
       classification,
       isFlagged,
-      departmentId,
+      departmentName,
       limit = 10,
       cursor
     } = filters;
@@ -42,9 +49,9 @@ export class StudentClassificationRepository {
       parameters.push(isFlagged);
     }
 
-    if (departmentId !== undefined) {
-      conditions.push(`s.college_program = $${paramIndex++}`);
-      parameters.push(departmentId);
+    if (departmentName !== undefined) {
+      conditions.push(`cd.department_name = $${paramIndex++}`);
+      parameters.push(departmentName);
     }
 
     if (cursor) {
@@ -66,19 +73,19 @@ export class StudentClassificationRepository {
         sc.classification,
         sc.is_flagged,
         sc.classified_at,
-        s.user_name,
         s.email,
-        s.college_program as department_id,
+        cp.college_department_id as department_id,
         cd.department_name
       FROM student_classification sc
       INNER JOIN student s ON sc.student_id = s.user_id
-      INNER JOIN college_departments cd ON s.college_program = cd.department_id
+      INNER JOIN college_programs cp ON s.program_id = cp.program_id
+      INNER JOIN college_departments cd ON cp.college_department_id = cd.department_id
       ${whereClause}
       ORDER BY sc.classified_at DESC, sc.classification_id DESC
       LIMIT $${paramIndex++}
     `;
 
-    const data = await this.dataSource.query(dataQuery, [...parameters, limit + 1]);
+    const data = await AppDataSource.query(dataQuery, [...parameters, limit + 1]);
 
     const hasMore = data.length > limit;
     const classifications = hasMore ? data.slice(0, limit) : data;
@@ -101,18 +108,19 @@ export class StudentClassificationRepository {
         sc.classified_at,
         s.user_name,
         s.email,
-        s.college_program as department_id,
+        cp.college_department as department_id,
         cd.department_name
       FROM student_classification sc
       INNER JOIN student s ON sc.student_id = s.user_id
-      INNER JOIN college_departments cd ON s.college_program = cd.department_id
+      INNER JOIN college_programs cp ON s.college_program = cp.program_id
+      INNER JOIN college_departments cd ON cp.college_department = cd.department_id
       WHERE sc.student_id = $1
         AND s.is_deleted = false
       ORDER BY sc.classified_at DESC
       LIMIT 1
     `;
 
-    const result = await this.dataSource.query(query, [studentId]);
+    const result = await AppDataSource.query(query, [studentId]);
     return result.length > 0 ? result[0] : null;
   }
 
@@ -132,11 +140,11 @@ export class StudentClassificationRepository {
   }
 
   async findByDepartment(
-    departmentId: number,
+    departmentName: string,
     limit = 10,
     cursor?: string
   ): Promise<PaginatedStudentClassifications> {
-    return this.findAll({ departmentId, limit, cursor });
+    return this.findAll({ departmentName, limit, cursor });
   }
 
   async findById(classificationId: string): Promise<StudentClassification | null> {
@@ -149,16 +157,17 @@ export class StudentClassificationRepository {
         sc.classified_at,
         s.user_name,
         s.email,
-        s.college_program as department_id,
+        cp.college_department as department_id,
         cd.department_name
       FROM student_classification sc
       INNER JOIN student s ON sc.student_id = s.user_id
-      INNER JOIN college_departments cd ON s.college_program = cd.department_id
+      INNER JOIN college_programs cp ON s.college_program = cp.program_id
+      INNER JOIN college_departments cd ON cp.college_department_id = cd.department_id
       WHERE sc.classification_id = $1
         AND s.is_deleted = false
     `;
 
-    const result = await this.dataSource.query(query, [classificationId]);
+    const result = await AppDataSource.query(query, [classificationId]);
     return result.length > 0 ? result[0] : null;
   }
 }

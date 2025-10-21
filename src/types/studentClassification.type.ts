@@ -34,7 +34,6 @@ export interface StudentClassification {
   classification: ClassificationEnum;
   is_flagged: boolean;
   classified_at: Date;
-  user_name: string;
   email: string;
   department_id: number;
   department_name: string;
