@@ -19,7 +19,7 @@
  *
  * @author Arthur M. Artugue
  * @created 2025-08-16
- * @updated 2025-08-28
+ * @updated 2025-10-21
  */
 
 import express from 'express';
@@ -32,9 +32,6 @@ import { errorMiddleware } from './middlewares/error.middleware.js';
 import { googleAuthMiddleware } from './middlewares/googleAuth.middleware.js';
 import type { AuthenticatedRequest } from './interface/authRequest.interface.js';
 import loginRoute from './routes/login.route.js';
-import boardingRoute from './routes/onBoarding.route.js'
-import refreshRoute from './routes/refresh.route.js'
-import logoutRoute from './routes/logout.route.js'
 import { env } from './config/env.config.js';
 import fs from 'fs';
 
@@ -46,13 +43,13 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Heron Wellnest Authentication API',
+      title: 'Heron Wellnest Users API',
       version: '1.0.0',
-      description: "Heron Wellnest Authentication API provides secure endpoints for managing user authentication and authorization within the platform. It supports user registration, login, token-based authentication (JWT), role-based access control, and secure session management. This API ensures the protection of sensitive student information through encryption, while enabling seamless integration with other Wellnest modules/services."
+      description: "Heron Wellnest Users API provides secure endpoints for managing users or students withing the system. This API requires administrative privileges to access its resources.",
     },
     servers: [
       {
-        url: `http://localhost:${env.PORT}/api/v1/auth`,
+        url: `http://localhost:${env.PORT}/api/v1/users`,
       },
     ],
     components: {
@@ -83,9 +80,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/v1/auth', loginRoute);
-app.use('/api/v1/auth', boardingRoute);
-app.use('/api/v1/auth', refreshRoute);
-app.use('/api/v1/auth', logoutRoute);
 
 // This is a health check route
 app.get('/api/v1/auth/health', (_req, res) => {
