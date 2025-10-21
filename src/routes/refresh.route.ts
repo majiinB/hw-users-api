@@ -1,7 +1,7 @@
 import express from 'express';
 import { StudentRefreshTokenRepository } from '../repository/studentRefreshToken.repository.js';
 import { AdminRefreshTokenRepository } from '../repository/adminRefreshToken.repository.js';
-import { CounselorRefreshTokenRepository } from '../repository/counselorRefreshToken.model.js';
+import { CounselorRefreshTokenRepository } from '../repository/counselorRefreshToken.repository.js';
 import { RefreshTokenService } from '../services/refresh.service.js';
 import { RefreshTokenController } from '../controllers/refresh.controller.js';
 import { asyncHandler } from '../utils/asyncHandler.util.js';

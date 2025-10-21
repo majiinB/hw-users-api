@@ -15,7 +15,7 @@ import { AdminRefreshToken } from "../models/adminRefreshToken.model.js";
 import { AdminRefreshTokenRepository } from "../repository/adminRefreshToken.repository.js";
 import { Counselor } from "../models/counselor.model.js";
 import { CounselorRepository } from "../repository/counselor.repository.js";
-import { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.model.js";
+import { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.repository.js";
 import { CounselorRefreshToken } from "../models/counselorRefreshToken.model.js";
 
 /**

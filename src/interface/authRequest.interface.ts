@@ -16,8 +16,8 @@ export interface AuthenticatedRequest extends Request {
     sub:string;
     email: string;
     name: string;
-    role: string;
-    college_department: string;
+    role?: string;
+    college_department?: string;
     picture?: string;
   };
 }

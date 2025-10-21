@@ -8,7 +8,7 @@ import { StudentRefreshTokenRepository } from "../repository/studentRefreshToken
 import { AdminRepository } from "../repository/admin.repository.js";
 import { AdminRefreshTokenRepository } from "../repository/adminRefreshToken.repository.js";
 import { CounselorRepository } from "../repository/counselor.repository.js";
-import { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.model.js";
+import { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.repository.js";
 
 const router = express.Router();
 const studentRepository = new  StudentRepository();

@@ -1,5 +1,5 @@
 import type { AdminRefreshTokenRepository } from "../repository/adminRefreshToken.repository.js";
-import type { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.model.js";
+import type { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.repository.js";
 import type { StudentRefreshTokenRepository } from "../repository/studentRefreshToken.repository.js";
 import type { ApiResponse } from "../types/apiResponse.type.js";
 import { AppError } from "../types/appError.type.js";

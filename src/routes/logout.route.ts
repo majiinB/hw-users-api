@@ -4,7 +4,7 @@ import { LogoutController } from "../controllers/logout.controller.js"
 import { LogoutService } from "../services/logout.service.js";
 import { StudentRefreshTokenRepository } from "../repository/studentRefreshToken.repository.js";
 import { AdminRefreshTokenRepository } from '../repository/adminRefreshToken.repository.js';
-import { CounselorRefreshTokenRepository } from '../repository/counselorRefreshToken.model.js';
+import { CounselorRefreshTokenRepository } from '../repository/counselorRefreshToken.repository.js';
 
 const router = express.Router();
 const studentTokenRepo = new StudentRefreshTokenRepository();

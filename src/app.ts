@@ -30,8 +30,8 @@ import {corsOptions} from './config/cors.config.js';
 import { loggerMiddleware } from './middlewares/logger.middleware.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { googleAuthMiddleware } from './middlewares/googleAuth.middleware.js';
-import type { AuthenticatedRequest } from './interface/authRequest.interface.js';
-import loginRoute from './routes/login.route.js';
+// import type { AuthenticatedRequest } from './interface/authRequest.interface.js';
+// import loginRoute from './routes/login.route.js';
 import { env } from './config/env.config.js';
 import fs from 'fs';
 
@@ -78,18 +78,18 @@ app.use(express.json());
 app.use(loggerMiddleware); // Custom logger middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Routes
-app.use('/api/v1/auth', loginRoute);
+// Routess
+// app.use('/api/v1/users', loginRoute);
 
 // This is a health check route
-app.get('/api/v1/auth/health', (_req, res) => {
+app.get('/api/v1/users/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-app.get('/dev/v1/test', googleAuthMiddleware, async (_req : AuthenticatedRequest, res) => {
-  // TEST ROUTE - REMOVE IN PRODUCTION
-  res.status(200).json({ status: 'ok', user: _req.user });
-});
+// app.get('/dev/v1/test', googleAuthMiddleware, async (_req : AuthenticatedRequest, res) => {
+//   // TEST ROUTE - REMOVE IN PRODUCTION
+//   res.status(200).json({ status: 'ok', user: _req.user });
+// });
   
 app.use(errorMiddleware); // Custom error handling middleware
 

@@ -12,7 +12,7 @@ import { AdminRefreshToken } from "../models/adminRefreshToken.model.js";
 import { CounselorRefreshToken } from "../models/counselorRefreshToken.model.js";
 import { AdminRefreshTokenRepository } from "../repository/adminRefreshToken.repository.js";
 import { Admin } from "../models/admin.model.js";
-import type { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.model.js";
+import type { CounselorRefreshTokenRepository } from "../repository/counselorRefreshToken.repository.js";
 import type { Counselor } from "../models/counselor.model.js";
 
 /**
