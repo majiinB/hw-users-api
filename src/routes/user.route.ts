@@ -201,5 +201,258 @@ const userController = new UserController(userService);
  */
 router.get('/students', heronAuthMiddleware, asyncHandler(userController.handleFetchingAllStudents.bind(userController)));
 
+/**
+ * @openapi
+ * /students/{studentId}:
+ *   post:
+ *     summary: Fetch detailed information for a specific student
+ *     description: |
+ *       Retrieves detailed information for a specific student including:
+ *       - Latest classification record
+ *       - Student profile (name, email, program, department)
+ *       - 7 most recent mood check-ins (representing a week)
+ *       
+ *       **Authorization Requirements:**
+ *       - **Admins/Super Admins**: Requires email and password in request body. Can access any student.
+ *       - **Counselors**: Requires email and password in request body. Can only access students from their assigned department.
+ *       
+ *       **Note:** This endpoint requires additional credential verification for sensitive data access.
+ *     tags:
+ *       - Students
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier (user_id) of the student
+ *         example: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *     requestBody:
+ *       required: true
+ *       description: Admin or counselor credentials for verification
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email of the admin or counselor making the request
+ *                 example: admin@umak.edu.ph
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Password of the admin or counselor
+ *                 example: SecurePassword123!
+ *           examples:
+ *             adminCredentials:
+ *               value:
+ *                 email: admin@umak.edu.ph
+ *                 password: SecurePassword123!
+ *             counselorCredentials:
+ *               value:
+ *                 email: counselor@umak.edu.ph
+ *                 password: CounselorPass456!
+ *     responses:
+ *       "200":
+ *         description: Student information fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: string
+ *                   example: FETCHED_SUCCESSFULLY
+ *                 message:
+ *                   type: string
+ *                   example: Student fetched successfully.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     classification_id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 539bc580-915c-49b7-a6f6-bf736e791595
+ *                     student_id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                     classification:
+ *                       type: string
+ *                       enum: [Excelling, Thriving, Struggling, InCrisis]
+ *                       example: Thriving
+ *                     is_flagged:
+ *                       type: boolean
+ *                       example: false
+ *                     classified_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-10-19T11:59:57.729Z
+ *                     user_name:
+ *                       type: string
+ *                       example: John Doe
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                       description: Full email address (not anonymized for detailed view)
+ *                       example: johndoe@example.com
+ *                     department_id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                     program_name:
+ *                       type: string
+ *                       example: Bachelor of Science in Computer Science (Application Development Elective Track)
+ *                     department_name:
+ *                       type: string
+ *                       example: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *                     mood_check_ins:
+ *                       type: array
+ *                       description: Array of the 7 most recent mood check-ins
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           check_in_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 3e8815d1-c8ba-40f0-af09-575acf1ad67a
+ *                           user_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                           mood_1:
+ *                             type: string
+ *                             example: calm
+ *                           mood_2:
+ *                             type: string
+ *                             example: motivated
+ *                           mood_3:
+ *                             type: string
+ *                             example: content
+ *                           checked_in_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2025-10-22T10:57:55.653Z
+ *             examples:
+ *               successResponse:
+ *                 value:
+ *                   success: true
+ *                   code: FETCHED_SUCCESSFULLY
+ *                   message: Student fetched successfully.
+ *                   data:
+ *                     classification_id: 539bc580-915c-49b7-a6f6-bf736e791595
+ *                     student_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                     classification: Thriving
+ *                     is_flagged: false
+ *                     classified_at: 2025-10-19T11:59:57.729Z
+ *                     user_name: ARTHUR ARTUGUE
+ *                     email: aartugue.a12241566@umak.edu.ph
+ *                     department_id: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                     program_name: Bachelor of Science in Computer Science (Application Development Elective Track)
+ *                     department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *                     mood_check_ins:
+ *                       - check_in_id: 3e8815d1-c8ba-40f0-af09-575acf1ad67a
+ *                         user_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                         mood_1: calm
+ *                         mood_2: motivated
+ *                         mood_3: content
+ *                         checked_in_at: 2025-10-22T10:57:55.653Z
+ *                       - check_in_id: 2b58e5f0-e3b7-41fb-be21-a0154f2a1710
+ *                         user_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                         mood_1: calm
+ *                         mood_2: motivated
+ *                         mood_3: content
+ *                         checked_in_at: 2025-10-21T19:12:08.551Z
+ *                       - check_in_id: c5f7e458-3b7c-4c42-8c15-ceb9ddaf6cf5
+ *                         user_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                         mood_1: calm
+ *                         mood_2: motivated
+ *                         mood_3: content
+ *                         checked_in_at: 2025-10-21T19:12:06.626Z
+ *                       - check_in_id: 370f95f8-9e8f-43e2-971b-2103e2d1e2e9
+ *                         user_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                         mood_1: calm
+ *                         mood_2: motivated
+ *                         mood_3: content
+ *                         checked_in_at: 2025-10-21T19:12:04.955Z
+ *                       - check_in_id: fd55344c-c8d7-4818-8801-64b8544154ff
+ *                         user_id: c81daef9-bc32-4624-a595-3cdb0f66d559
+ *                         mood_1: calm
+ *                         mood_2: motivated
+ *                         mood_3: content
+ *                         checked_in_at: 2025-10-19T10:23:55.926Z
+ *       "400":
+ *         description: Bad request - missing credentials or invalid parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               missingCredentials:
+ *                 value:
+ *                   success: false
+ *                   code: MISSING_ADMIN_CREDENTIALS
+ *                   message: This action requires proper credentials.
+ *       "401":
+ *         description: Unauthorized - invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               invalidCredentials:
+ *                 value:
+ *                   success: false
+ *                   code: INVALID_CREDENTIALS
+ *                   message: Invalid credentials provided. please try again.
+ *       "403":
+ *         description: Forbidden - counselor attempting to access student from different department
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               forbiddenAccess:
+ *                 value:
+ *                   success: false
+ *                   code: FORBIDDEN_ACCESS
+ *                   message: You do not have permission to access this student's information.
+ *       "404":
+ *         description: Student not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               notFound:
+ *                 value:
+ *                   success: false
+ *                   code: STUDENT_NOT_FOUND
+ *                   message: Student not found.
+ *       "500":
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   success: false
+ *                   code: INTERNAL_SERVER_ERROR
+ *                   message: Failed to fetch student information
+ */
 router.post('/students/:studentId', heronAuthMiddleware, asyncHandler(userController.handleFetchingSpecificStudent.bind(userController)));
+
 export default router;
