@@ -20,7 +20,7 @@ export async function heronAuthMiddleware(req: AuthenticatedRequest, res: Respon
     
     const payload : AccessTokenClaims = await verifyToken(token);
     
-    if(!payload.email || !payload.name || !payload.sub || !payload.role || !payload.college_department) {
+    if(!payload.email || !payload.name || !payload.sub || !payload.role) {
       throw new AppError(
         401,
         "AUTH_INVALID_TOKEN",
@@ -44,7 +44,7 @@ export async function heronAuthMiddleware(req: AuthenticatedRequest, res: Respon
       name: payload.name!,
       sub: payload.sub!,
       role: payload.role!,
-      college_department: payload.college_department!,
+      college_department: payload.role === "counselor" ? payload.college_department! : undefined,
     };
 
     next();

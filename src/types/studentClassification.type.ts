@@ -36,5 +36,15 @@ export interface StudentClassification {
   classified_at: Date;
   email: string;
   department_id: number;
+  program_name: string;
   department_name: string;
+  mood_check_ins?: MoodCheckIn[];
+}
+
+export interface MoodCheckIn {
+  check_in_id: string;
+  mood_1: string;
+  mood_2: string;
+  mood_3: string;
+  checked_in_at: Date;
 }

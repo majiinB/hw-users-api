@@ -5,6 +5,7 @@ import type { ClassificationEnum } from "../types/studentClassification.type.js"
 import { logger } from "../utils/logger.util.js";
 import type { ApiResponse } from "../types/apiResponse.type.js";
 import { AppError } from "../types/appError.type.js";
+import { comparePassword } from "../utils/crypt.util.js";
 
 export class UserController {
   private userService: UserService;
@@ -41,6 +42,32 @@ export class UserController {
       success: true,
       code: "FETCHED_SUCCESSFULLY",
       message: "Students fetched successfully.",
+      data: result
+    }
+
+    res.status(200).json(response);
+  }
+
+  public async handleFetchingSpecificStudent(req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> {
+    const studentId = req.params.studentId;
+    const { email, password } = req.body ?? {};
+    const { role } = req.user ?? {};
+
+    if (!email || !password) {
+      throw new AppError(
+        400,
+        "MISSING_ADMIN_CREDENTIALS",
+        "This action requires proper credentials.",
+        true
+      ) // Stop execution if missing
+    }
+
+    const result = await this.userService.getStudentById(email, password, role!, studentId);
+
+    const response : ApiResponse = {
+      success: true,
+      code: "FETCHED_SUCCESSFULLY",
+      message: "Student fetched successfully.",
       data: result
     }
 

@@ -4,12 +4,33 @@ import { UserController } from '../controllers/user.controller.js';
 import { UserService } from '../services/user.service.js';
 import { StudentClassificationRepository } from '../repository/studentClassification.repository.js';
 import { heronAuthMiddleware } from '../middlewares/heronAuth.middleware..js';
+import { AdminRepository } from '../repository/admin.repository.js';
+import { CounselorRepository } from '../repository/counselor.repository.js';
 
 const router = express.Router();
 const studentClassificationRepository = new StudentClassificationRepository();
-const userService = new UserService(studentClassificationRepository);
+const adminRepository = new AdminRepository();
+const counselorRepository = new CounselorRepository();
+const userService = new UserService(studentClassificationRepository, adminRepository, counselorRepository);
 const userController = new UserController(userService);
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: false
+ *         code:
+ *           type: string
+ *           example: BAD_REQUEST
+ *         message:
+ *           type: string
+ *           example: Invalid input data
+ */
 
 /**
  * @openapi
@@ -32,7 +53,7 @@ const userController = new UserController(userService);
  *         name: classification
  *         schema:
  *           type: string
- *           enum: [Excelling, Thriving, Struggling, In-crisis]
+ *           enum: [Excelling, Thriving, Struggling, InCrisis]
  *         description: Filter students by classification type
  *         example: Struggling
  *       - in: query
@@ -101,16 +122,10 @@ const userController = new UserController(userService);
  *                             type: string
  *                             format: date-time
  *                             example: 2025-10-21T12:08:11.853Z
- *                           user_name:
- *                             type: string
- *                             example: John Doe
  *                           email:
  *                             type: string
  *                             description: Anonymized email address
  *                             example: j****e@umak.edu.ph
- *                           department_id:
- *                             type: integer
- *                             example: 1
  *                           department_name:
  *                             type: string
  *                             example: Computer Science
@@ -136,19 +151,15 @@ const userController = new UserController(userService);
  *                         classification: Struggling
  *                         is_flagged: true
  *                         classified_at: 2025-10-21T12:08:11.853Z
- *                         user_name: John Doe
  *                         email: j****e@umak.edu.ph
- *                         department_id: 1
- *                         department_name: Computer Science
+ *                         department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
  *                       - classification_id: 9d6e4a2c-5678-1234-90ab-cdef87654321
  *                         student_id: 4f8b3c7d-9876-5432-10ba-fedc12345678
  *                         classification: Excelling
  *                         is_flagged: false
  *                         classified_at: 2025-10-20T08:30:00.000Z
- *                         user_name: Jane Smith
  *                         email: j****h@umak.edu.ph
- *                         department_id: 2
- *                         department_name: Information Technology
+ *                         department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
  *                     hasMore: true
  *                     nextCursor: 9d6e4a2c-5678-1234-90ab-cdef87654321
  *       "400":
@@ -190,4 +201,5 @@ const userController = new UserController(userService);
  */
 router.get('/students', heronAuthMiddleware, asyncHandler(userController.handleFetchingAllStudents.bind(userController)));
 
+router.post('/students/:studentId', heronAuthMiddleware, asyncHandler(userController.handleFetchingSpecificStudent.bind(userController)));
 export default router;

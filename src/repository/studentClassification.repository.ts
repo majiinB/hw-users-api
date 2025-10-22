@@ -108,8 +108,9 @@ export class StudentClassificationRepository {
     };
   }
 
-  async findByStudentId(studentId: string): Promise<StudentClassification | null> {
-    const query = `
+    async findByStudentId(studentId: string): Promise<StudentClassification | null> {
+    // First, get the student classification details
+    const classificationQuery = `
       SELECT 
         sc.classification_id,
         sc.student_id,
@@ -118,20 +119,49 @@ export class StudentClassificationRepository {
         sc.classified_at,
         s.user_name,
         s.email,
-        cp.college_department as department_id,
+        cp.college_department_id as department_id,
+        cp.program_name,
         cd.department_name
       FROM student_classification sc
       INNER JOIN student s ON sc.student_id = s.user_id
-      INNER JOIN college_programs cp ON s.college_program = cp.program_id
-      INNER JOIN college_departments cd ON cp.college_department = cd.department_id
+      INNER JOIN college_programs cp ON s.program_id = cp.program_id
+      INNER JOIN college_departments cd ON cp.college_department_id = cd.department_id
       WHERE sc.student_id = $1
         AND s.is_deleted = false
       ORDER BY sc.classified_at DESC
       LIMIT 1
     `;
-
-    const result = await AppDataSource.query(query, [studentId]);
-    return result.length > 0 ? result[0] : null;
+  
+    const classificationResult = await AppDataSource.query(classificationQuery, [studentId]);
+    
+    if (classificationResult.length === 0) {
+      return null;
+    }
+  
+    // Get the 7 most recent mood check-ins for this student
+    const moodCheckInsQuery = `
+      SELECT 
+        check_in_id,
+        user_id,
+        mood_1,
+        mood_2,
+        mood_3,
+        checked_in_at
+      FROM mood_check_ins
+      WHERE user_id = $1
+      ORDER BY checked_in_at DESC
+      LIMIT 7
+    `;
+  
+    const moodCheckIns = await AppDataSource.query(moodCheckInsQuery, [studentId]);
+  
+    // Combine the results
+    const result: StudentClassification = {
+      ...classificationResult[0],
+      mood_check_ins: moodCheckIns
+    };
+  
+    return result;
   }
 
   async findByClassification(
@@ -167,7 +197,7 @@ export class StudentClassificationRepository {
         sc.classified_at,
         s.user_name,
         s.email,
-        cp.college_department as department_id,
+        cp.college_department_id as department_id,
         cd.department_name
       FROM student_classification sc
       INNER JOIN student s ON sc.student_id = s.user_id
