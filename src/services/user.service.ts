@@ -131,4 +131,12 @@ export class UserService {
   public async getAllDepartmentStatistics(): Promise<DepartmentStatistics[] | null> {
     return this.studentClassificationRepo.getAllDepartmentsStatistics();
   }
+
+  public async getCounselorByDepartment(departmentId: string): Promise<Promise<Omit<Counselor, 'password'>[]> | null> {
+    return this.counselorRepository.findByDepartmentWithoutPassword(departmentId);
+  } 
+
+  public async getAllCounselors(): Promise<Omit<Counselor, 'password'>[]> {
+    return await this.counselorRepository.findAllWithoutPassword();
+  }
 }

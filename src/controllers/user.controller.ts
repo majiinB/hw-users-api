@@ -96,4 +96,66 @@ export class UserController {
 
     res.status(200).json(response);
   }
+
+  public async handleFetchingAllDepartmentCounselors(req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> {
+    const userRole = req.user?.role;
+    const department = req.user?.college_department;
+
+    if (!userRole) {
+      throw new AppError(
+        400,
+        "MISSING_USER_INFO",
+        "User role is required.",
+        true
+      );
+    }
+
+    let response : ApiResponse = {
+      success: true,
+      code: "FETCHED_SUCCESSFULLY",
+      message: "Counselors fetched successfully.",
+      data: []
+    };
+
+    if (userRole === "admin" || userRole === "super_admin") {
+      const result = await this.userService.getAllCounselors();
+      response = {
+        success: true,
+        code: "FETCHED_SUCCESSFULLY",
+        message: "Counselors fetched successfully.",
+        data: result
+      };
+
+      res.status(200).json(response);
+    }
+
+    if (!department) {
+      throw new AppError(
+        400,
+        "MISSING_DEPARTMENT_INFO",
+        "College department information is required.",
+        true
+      );
+    }
+
+    const result = await this.userService.getCounselorByDepartment(department);
+
+    if(userRole === "counselor" || userRole === "student") {
+      response = {
+        success: true,
+        code: "FETCHED_SUCCESSFULLY",
+        message: "Counselors fetched successfully.",
+        data: result !== null ? result.map(counselor => {
+          const { 
+            is_deleted,  
+            created_at,
+            updated_at,
+            ...counselorWithoutPassword } = counselor;
+          return counselorWithoutPassword;
+        }) : []
+      };
+    }
+    
+    res.status(200).json(response);
+  }
 }

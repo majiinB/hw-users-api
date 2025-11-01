@@ -116,47 +116,75 @@ export class CounselorRepository {
   /**
    * Find counselors by college department
    */
-  async findByDepartment(departmentId: number): Promise<Counselor[]> {
+    /**
+   * Find counselors by college department
+   */
+  async findByDepartment(departmentName: string): Promise<Counselor[]> {
     const query = `
       SELECT 
-        user_id,
-        user_name,
-        email,
-        password,
-        is_deleted,
-        college_department,
-        created_at,
-        updated_at
-      FROM counselor
-      WHERE college_department = $1
-        AND is_deleted = false
-      ORDER BY user_name ASC
+        c.user_id,
+        c.user_name,
+        c.email,
+        c.password,
+        c.is_deleted,
+        c.department_id,
+        c.created_at,
+        c.updated_at,
+        cd.department_name
+      FROM counselor c
+      INNER JOIN college_departments cd ON c.department_id = cd.department_id
+      WHERE cd.department_name = $1
+        AND c.is_deleted = false
+      ORDER BY c.user_name ASC
     `;
-
-    const result = await AppDataSource.query(query, [departmentId]);
+  
+    const result = await AppDataSource.query(query, [departmentName]);
     return result;
   }
-
+  
   /**
    * Find counselors by college department without password (for safe responses)
    */
-  async findByDepartmentWithoutPassword(departmentId: number): Promise<Omit<Counselor, 'password'>[]> {
+  async findByDepartmentWithoutPassword(departmentName: string): Promise<Omit<Counselor, 'password'>[]> {
     const query = `
       SELECT 
-        user_id,
-        user_name,
-        email,
-        is_deleted,
-        college_department,
-        created_at,
-        updated_at
-      FROM counselor
-      WHERE college_department = $1
-        AND is_deleted = false
-      ORDER BY user_name ASC
+        c.user_id,
+        c.user_name,
+        c.email,
+        c.is_deleted,
+        c.department_id,
+        c.created_at,
+        c.updated_at,
+        cd.department_name
+      FROM counselor c
+      INNER JOIN college_departments cd ON c.department_id = cd.department_id
+      WHERE cd.department_name = $1
+        AND c.is_deleted = false
+      ORDER BY c.user_name ASC
     `;
-
-    const result = await AppDataSource.query(query, [departmentId]);
+  
+    const result = await AppDataSource.query(query, [departmentName]);
     return result;
   }
+
+  public async findAllWithoutPassword(): Promise<Omit<Counselor, 'password'>[]> {
+  const query = `
+    SELECT 
+      c.user_id,
+      c.user_name,
+      c.email,
+      c.is_deleted,
+      c.department_id,
+      c.created_at,
+      c.updated_at,
+      cd.department_name
+    FROM counselor c
+    INNER JOIN college_departments cd ON c.department_id = cd.department_id
+    WHERE c.is_deleted = false
+    ORDER BY cd.department_name ASC, c.user_name ASC
+  `;
+
+  const result = await AppDataSource.query(query);
+  return result;
+}
 }

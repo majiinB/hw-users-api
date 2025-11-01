@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.util.js';
 import { UserController } from '../controllers/user.controller.js';
 import { UserService } from '../services/user.service.js';
 import { StudentClassificationRepository } from '../repository/studentClassification.repository.js';
-import { heronAuthMiddleware } from '../middlewares/heronAuth.middleware..js';
+import { heronAuthMiddleware, heronAuthMiddlewareStudent } from '../middlewares/heronAuth.middleware..js';
 import { AdminRepository } from '../repository/admin.repository.js';
 import { CounselorRepository } from '../repository/counselor.repository.js';
 
@@ -705,5 +705,186 @@ router.post('/students/:studentId', heronAuthMiddleware, asyncHandler(userContro
  *                   message: Failed to fetch department statistics
  */
 router.get('/departments/statistics', heronAuthMiddleware, asyncHandler(userController.handleFetchingDepartmentStatistics.bind(userController)));
+
+/**
+ * @openapi
+ * /departments/counselors:
+ *   get:
+ *     summary: Fetch counselors from a department
+ *     description: |
+ *       Retrieves a list of counselors based on the user's role and department.
+ *       
+ *       **Role-Based Access:**
+ *       - **Admins/Super Admins**: Returns ALL counselors from all departments
+ *       - **Counselors**: Returns counselors ONLY from their assigned department (with limited information)
+ *       - **Students**: Returns counselors ONLY from their assigned department (with limited information)
+ *       
+ *       **Data Privacy:**
+ *       - Students and counselors receive sanitized data (no password, is_deleted, created_at, updated_at fields)
+ *       - Admins receive complete counselor information
+ *     tags:
+ *       - Counselors
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: Counselors fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: string
+ *                   example: FETCHED_SUCCESSFULLY
+ *                 message:
+ *                   type: string
+ *                   example: Counselors fetched successfully.
+ *                 data:
+ *                   oneOf:
+ *                     - type: array
+ *                       description: Full counselor data (for admins)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+ *                           user_name:
+ *                             type: string
+ *                             example: Dr. Jane Smith
+ *                           email:
+ *                             type: string
+ *                             format: email
+ *                             example: janesmith@umak.edu.ph
+ *                           is_deleted:
+ *                             type: boolean
+ *                             example: false
+ *                           department_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                           department_name:
+ *                             type: string
+ *                             example: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-01-15T08:30:00.000Z
+ *                           updated_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-10-20T14:45:00.000Z
+ *                     - type: array
+ *                       description: Limited counselor data (for students and counselors)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+ *                           user_name:
+ *                             type: string
+ *                             example: Dr. Jane Smith
+ *                           email:
+ *                             type: string
+ *                             format: email
+ *                             example: janesmith@umak.edu.ph
+ *                           department_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                           department_name:
+ *                             type: string
+ *                             example: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *             examples:
+ *               adminResponse:
+ *                 summary: Admin response (all departments, full data)
+ *                 value:
+ *                   success: true
+ *                   code: FETCHED_SUCCESSFULLY
+ *                   message: Counselors fetched successfully.
+ *                   data:
+ *                     - user_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+ *                       user_name: Dr. Jane Smith
+ *                       email: janesmith@umak.edu.ph
+ *                       is_deleted: false
+ *                       department_id: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                       department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *                       created_at: 2024-01-15T08:30:00.000Z
+ *                       updated_at: 2024-10-20T14:45:00.000Z
+ *                     - user_id: 7b9d5f8c-1234-5678-90ab-cdef12345678
+ *                       user_name: Dr. John Doe
+ *                       email: johndoe@umak.edu.ph
+ *                       is_deleted: false
+ *                       department_id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+ *                       department_name: COLLEGE OF ENGINEERING
+ *                       created_at: 2024-02-10T09:15:00.000Z
+ *                       updated_at: 2024-10-21T16:30:00.000Z
+ *               studentOrCounselorResponse:
+ *                 summary: Student/Counselor response (single department, limited data)
+ *                 value:
+ *                   success: true
+ *                   code: FETCHED_SUCCESSFULLY
+ *                   message: Counselors fetched successfully.
+ *                   data:
+ *                     - user_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+ *                       user_name: Dr. Jane Smith
+ *                       email: janesmith@umak.edu.ph
+ *                       department_id: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                       department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *                     - user_id: 9d6e4a2c-5678-1234-90ab-cdef87654321
+ *                       user_name: Dr. Maria Garcia
+ *                       email: mgarcia@umak.edu.ph
+ *                       department_id: e2c087e6-e7ec-4f34-a215-b8a67b3a9d92
+ *                       department_name: COLLEGE OF COMPUTING AND INFORMATION SCIENCES
+ *       "400":
+ *         description: Bad request - missing required information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               missingUserInfo:
+ *                 value:
+ *                   success: false
+ *                   code: MISSING_USER_INFO
+ *                   message: User role is required.
+ *               missingDepartment:
+ *                 value:
+ *                   success: false
+ *                   code: MISSING_DEPARTMENT_INFO
+ *                   message: College department information is required.
+ *       "401":
+ *         description: Unauthorized - invalid or missing authentication token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   success: false
+ *                   code: UNAUTHORIZED
+ *                   message: Invalid or missing authentication token.
+ *       "500":
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   success: false
+ *                   code: INTERNAL_SERVER_ERROR
+ *                   message: Failed to fetch counselors
+ */
+router.get('/departments/counselors', heronAuthMiddlewareStudent, asyncHandler(userController.handleFetchingAllDepartmentCounselors.bind(userController)));
 
 export default router;
