@@ -30,6 +30,7 @@ jobs:
       - run: npm test -- src/tests/auth.test.ts
         env:
           JWT_SECRET: test-secret-key-for-ci-cd-testing-only-minimum-32-chars
+          CORS_ALLOWED_ORIGINS: http://localhost:3000
 
   build-and-deploy:
     if: github.ref == 'refs/heads/main'
@@ -58,6 +59,7 @@ jobs:
       - run: npm test -- src/tests/auth.test.ts
         env:
           JWT_SECRET: test-secret-key-for-ci-cd-testing-only-minimum-32-chars
+          CORS_ALLOWED_ORIGINS: http://localhost:3000
 
       - uses: google-github-actions/auth@v1
         with:
@@ -99,6 +101,7 @@ jobs:
             --update-env-vars JWT_ISSUER=${{ vars.JWT_ISSUER }} \
             --update-env-vars JWT_AUDIENCE=${{ vars.JWT_AUDIENCE }} \
             --update-env-vars JWT_ALGORITHM=${{ vars.JWT_ALGORITHM }} \
+            --update-env-vars CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }} \
             --set-secrets DB_PASSWORD=DB_PASSWORD:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,JWT_SECRET=JWT_SECRET:latest \
             --timeout=300 \
             --concurrency=20 \
